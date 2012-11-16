@@ -1,0 +1,16 @@
+While installing this Automation Software Package we assume that, you have already installed these packages :
+1. MySQL
+2. Django
+3. Mail Server
+
+If don't have any of them, please do get them installed. For installing this package, following steps need to be followed :
+a. Keep the scipt "auto.sh" in the home folder.
+b. No run this script.
+    $ ./auto.sh
+c. When you see that your script has completely run, you have your packeage installed. If you haven't used demo sql file, then go to :
+   http://localhost/automation/admin and enter the Organisation, Departments, Staff, Lab, materials etc to have the software running.
+   If you have used demo.sql, then go here : http://localhost/automation/ and enjoy the working software.
+
+Get more information about the package/Software by going into the Automation folder present in your home folder. For queries, contact me at 
+mkaurkhalsa@gmail.com or raise issues at github. I will be happy to solve them and answer your queries.
+EnJoY!!! :)
