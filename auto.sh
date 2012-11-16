@@ -149,7 +149,7 @@ then
    easy_install pip
    pip install django-registration                                               #installs registrtation module
    pip install django-tagging                                                    #installs tagging module
-   git clone https://github.com/sandymadaan/Automation.git                      #clones the folder into home directory
+   git clone https://github.com/sandeepmadaan/Automation.git                      #clones the folder into home directory
    cp -R Automation/other_files/media/ /usr/local/lib/python2.7/dist-packages/django/contrib/admin/     #this copies media forlder into the required destination 
 
    run       #this runs the main function
