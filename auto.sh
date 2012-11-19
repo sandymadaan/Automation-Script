@@ -11,30 +11,40 @@
 #                                                               #
 #                                                               #
 # created : 4-10-2012                                           #
-# last update : 16-11-2012                                      #
-# VER=1.1                                                       #
+# last update : 18-11-2012                                      #
+# VER=1.3                                                       #
 #                                                               #
 #################################################################
 
+# this script works only for python 2.7
 
-run()  # the fuunction 
+
+backup()
 {
-echo "######################################################"
-echo "hello user, you are about to make changes to files in"
-echo "######################################################"
 
+cp /etc/apache2/httpd.conf Automation/other_files/   #copies httpd.conf file in Automation/other_files folder
+
+}
+
+run()  # the function 
+{
+echo ""
+echo "######################################################"
+echo "#                                                    #"
+echo "#    INSTALLING---TCC-Automation software---         #"
+echo "#                                                    #"
+echo "######################################################"
+echo ""
 #################################################################
 #
 # arrays with their values.
 #
 #################################################################
 
-array=("enter the database name you want to create :" "enter the database username(mostly root) :"
-"enter the database password :" "enter the system name/username :" 	
-"enter the email address :"
-"enter the email username :" "enter the email password :")
-array1=("db_name" "db_user" "db_password" "user_name" "email_add" "email_user" "email_pass")
-array2=("15" "16" "17" "111" "37" "39" "40")
+array=("enter the database username(mostly root) :"
+"enter the database password :" "enter the email address :")
+array1=("db_user" "db_password" "email_add")
+array2=("16" "17" "37")
 
 
 
@@ -55,9 +65,45 @@ while [ $i -lt $len ]; do
 	read -p "${array[$i]}" ${array1[$i]}                           #this reads input from the user
 	sed -i "${array2[$i]} s/${array1[$i]}/${!array1[$i]}/" $file   #uses sed command to replace word from file to be replaced by user inputs
 	let i++
-done                                                                   #end of for loop
+done                                                    #end of for loop
+        
 
-#cat Automation/settings.py                                             #reads file in terminal
+        
+a=1
+while [ $a -ne 2 ]
+do
+{
+
+read -p "enter database name you want to create :" db_name
+RESULT=`mysql --user="$db_user" --password="$db_password" --skip-column-names -e "SHOW DATABASES LIKE '$db_name'"`
+if [ $RESULT ]; then
+    echo "The Database exist, choose another name for database."
+else
+    a=2
+    break
+
+fi
+}
+done    
+
+    
+        sed -i "15 s/db_name/$db_name/" $file
+#cat Automation/settings.py                       #reads file in terminal
+
+
+#################################################################################
+#
+# here the username automatically gets input from the system
+#
+#################################################################################
+
+
+NAME=$(who am i | awk '{print $1}')
+
+sed -i "111 s/user_name/$NAME/" $file
+echo "the username is $NAME"
+
+
 
 
 ######################################################################
@@ -66,7 +112,7 @@ done                                                                   #end of f
 #
 ######################################################################
 
-sed -i "s/user_name/$user_name/" Automation/apache/django.wsgi
+sed -i "s/user_name/$NAME/" Automation/apache/django.wsgi
 
 ######################################################################
 #
@@ -76,11 +122,12 @@ sed -i "s/user_name/$user_name/" Automation/apache/django.wsgi
 
 # need sudo power for this
 
-cat Automation/other_files/hhtp_cont >> /etc/apache2/httpd.conf         #this appends the text from the file to the httpd.conf
+cat Automation/other_files/hhtp_cont >> /etc/apache2/httpd.conf    
+      #this appends the text from the file to the httpd.conf
 
-sed -i "s/user_name/$user_name/" /etc/apache2/httpd.conf                #this replaces the word to the username
-#cat  /etc/apache2/httpd.conf
 
+sed -i "s/user_name/$NAME/" /etc/apache2/httpd.conf           
+      #this replaces the word to the username
 
 
 
@@ -90,21 +137,24 @@ sed -i "s/user_name/$user_name/" /etc/apache2/httpd.conf                #this re
 #
 #######################################################################
 
-mysqlbash_path='/usr/bin/mysql'                                         #mysql path address
+
+mysqlbash_path='/usr/bin/mysql'             #mysql path address
 
 mysqlbash="$mysqlbash_path --user=$db_user --password=$db_password -e"  #declaring a variable
 
-#$mysqlbash "show databases; "                                          #enabme to show the databases
+$mysqlbash "create database $db_name "      #creates databases with the name defined by the user
 
-$mysqlbash "create database $db_name "                                  #creates databases with the name defined by the user
+  # a new database is created
 
-# a new database is created
+echo ""
+echo ""
+read -p "enter 'Yes' for the demo database & 'No' for new database : "  db_yesno
 
-read -p " enter 'Yes' for the demo database and 'No' for blank database"  db_yesno
 
-#this checks for every affirmative condition the user might enter in.
+#this checks for every yes condition the user might enter in.
 if [ $db_yesno = y ] || [ $db_yesno = Y ] ||[ $db_yesno = yes ] ||[ $db_yesno = YES ]     
 then 
+echo ""
 echo "now u get the demo.sql in your database"
 echo "get ready to use TCC automation software"
 
@@ -113,49 +163,93 @@ echo "get ready to use TCC automation software"
 mysql --user=$db_user --password=$db_password $db_name < Automation/other_files/demo.sql 
 
 
-#defined every possible negetive condition that the user might enter in 
+#defined every possible no condition
 elif [ $db_yesno = n ] || [ $db_yesno = N ] || [ $db_yesno = no ] || [ $db_yesno = NO ]  
 then
+echo ""
 echo "now u get a new database"
 echo "enjoy your experience"
-                                                            #mysql --user=$db_user --password=$db_password $db_name < Automation/other_files/nawa.sql
+#mysql --user=$db_user --password=$db_password $db_name < Automation/other_files/nawa.sql
 cd Automation/
-python manage.py syncdb                                     #creates a blnk database for use, using django commands
-else
-echo "invalid choice try again,"                            #incase of invalid choice the script stops   
+python manage.py syncdb                   #creates a blnk database for use, using django commands
+
+
+echo "Now get ready to ADD Organisation details to your software."
+echo ""
+
+read -p "enter organisation id :" id
+read -p "enter organisation name :" name
+read -p "enter organisation address :" address
+read -p "phone/contact number :" phone
+read -p "Director of the Organisation :" dir
+#read -p "logo" logo
+
+
+mysql  --user=$db_user --password=$db_password $db_name << EOF
+Insert into tcc_organisation (id, name, address, phone, director, logo_upload) values( "$id", "$name", "$address", "$phone", '$dir', "$logo");
+EOF
+
+echo "Now get ready to ADD Departmant details to your software."
+echo ""
+
+read -p "enter the Department id :" id
+read -p "enter Department name :" name
+read -p "enter Department address :" address
+read -p "phone/contact number :" phone
+read -p "Dean of the Department:" dean
+read -p "enter the fax number :" faxno
+
+
+mysql  --user=$db_user --password=$db_password $db_name << EOF
+Insert into tcc_department (id, organisation_id, name, address, phone, dean, faxno) values( "$id", 1, "$name", "$address", "$phone", '$dean', "$faxno");
+EOF
+
 fi   
-
-#######################################################################
-#
-# creating the SuperUser
-#
-#######################################################################
-echo "You are going to create Superuser of the project. This will give you admin power"
-
-python manage.py createsuperuser
 }
 
-apache()
+restart()
 {
-/etc/init.d/apache2 restart
+
+/etc/init.d/apache2 restart               #restarts apache
+
 }
 
+browser()
+{
 
-if  [ -d /usr/local/lib/python*/dist-packages/django ] && [ -f /usr/bin/mysql ];  #if django and mysql are installed on the system the function runs.
+gnome-open http://localhost/automation/   #opens the url in default browser
+
+}
+
+if  [ -d /usr/local/lib/python2.7/dist-packages/django ] && [ -f /usr/bin/mysql ]; 
+#if django and mysql are installed on the system the function runs.
+
 then
-   apt-get install apache2 libapache2-mod-wsgi                                   #important things to be installed before running the software 
+   echo "-------installing required packages------"
+   apt-get install apache2 libapache2-mod-wsgi 
    apt-get install python-mysqldb
    sudo apt-get install python-setuptools
    easy_install pip
-   pip install django-registration                                               #installs registrtation module
-   pip install django-tagging                                                    #installs tagging module
-   git clone https://github.com/sandeepmadaan/Automation.git                      #clones the folder into home directory
-   cp -R Automation/other_files/media/ /usr/local/lib/python2.7/dist-packages/django/contrib/admin/     #this copies media forlder into the required destination 
+   echo ""
+   echo "-------installing django modules---------"
+   pip install django-registration
+   pip install django-tagging
+   echo ""
+   echo "######################################################"
+   echo "#                                                    #"
+   echo "#    DOWNLOADING---Automation software---            #"
+   echo "#                                                    #"
+   echo "######################################################"
+   echo ""
+   git clone https://github.com/sandeepmadaan/Automation.git
 
-   run       #this runs the main function
-   apache    #this function restarts apache
+   backup       #backs up important files in other_files folder(/Automation/other_files/)
+   run          #runs run function
+   restart      #runs browser function
+   browser      #runs browser function
 else
-    echo "Install Django and Mysql, before running the script"                    #else exits
+    echo "Install Django and Mysql, before running the script"              #else exits
     exit
 fi
+
 
